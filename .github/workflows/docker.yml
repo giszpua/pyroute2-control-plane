@@ -1,0 +1,36 @@
+name: Build and Push Control Plane
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # 1. Забираем код из GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Логинимся в GitHub Container Registry (GHCR)
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Собираем Docker image
+      - name: Build image
+        run: |
+          docker build -t ghcr.io/giszpua/pyroute2-control-plane:latest .
+
+      # 4. Пушим image в registry
+      - name: Push image
+        run: |
+          docker push ghcr.io/giszpua/pyroute2-control-plane:latest
